@@ -1,7 +1,12 @@
 const express = require('express')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const cors = require('cors')
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 3500
+require('dotenv').config()
+
+app.use(cors())
+app.use(express.json())
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
@@ -22,10 +27,30 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const db = client.db('assigment_10_User')
-        const movies = db.collection('movies')
+        const database = client.db('assigment_10_User')
 
-        
+        const moviesCollection = database.collection('movies')
+
+        app.post('/movies', async (req, res) => {
+            const query = req.body;
+            const result = await moviesCollection.insertMany(query)
+            res.send(result)
+        })
+
+        app.get('/movies', async (req, res) => {
+            const id = req.query.id;
+
+            if (id) {
+                const query = { _id: new ObjectId(id) };
+
+                const result = await moviesCollection.findOne(query)
+                res.send(result)
+            }
+
+            const result = await moviesCollection.find({}).toArray()
+            res.send(result)
+        })
+
 
 
         // Send a ping to confirm a successful connection
